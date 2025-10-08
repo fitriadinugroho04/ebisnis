@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Dashboard Admin - Data Pesanan</title>
+    <style>
+      :root {
+        --fresh-orange: #ff7b00;
+        --fresh-green: #004b23;
+        --off-white: #fdfaf6;
+        --danger-red: #dc3545;
+      }
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #fdfaf6;
+        margin: 0;
+      }
+      .sidebar {
+        width: 220px;
+        background-color: #004b23;
+        color: white;
+        position: fixed;
+        height: 100%;
+        padding-top: 20px;
+      }
+      .sidebar h2 {
+        text-align: center;
+        font-family: "Lilita One", cursive;
+        font-size: 2rem;
+      }
+      .sidebar a {
+        display: block;
+        color: white;
+        padding: 15px 20px;
+        text-decoration: none;
+        font-weight: 700;
+      }
+      .sidebar a:hover,
+      .sidebar a.active {
+        background-color: #ff7b00;
+      }
+      .main-content {
+        margin-left: 220px;
+        padding: 30px;
+      }
+      h1 {
+        font-family: "Lilita One", cursive;
+        font-size: 3rem;
+        color: #004b23;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+      }
+      th,
+      td {
+        padding: 15px;
+        border: 1px solid #ddd;
+        text-align: left;
+        vertical-align: middle;
+      }
+      th {
+        background-color: #f2f2f2;
+        font-weight: 700;
+      }
+      .header-dash {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+      #logout-btn {
+        font-weight: bold;
+        color: #ff7b00;
+        text-decoration: none;
+        cursor: pointer;
+      }
+      .btn-delete {
+        background-color: var(--danger-red);
+        color: white;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background-color 0.2s ease;
+      }
+      .btn-delete:hover {
+        background-color: #c82333;
+      }
+    </style>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Inter:wght@400;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="sidebar">
+      <h2>Sosis Kopong</h2>
+      <a href="dashboard.html" class="active">Data Pesanan</a>
+      <a href="index.html">Lihat Toko</a>
+      <a href="#" id="logout-btn">Logout</a>
+    </div>
+    <div class="main-content">
+      <div class="header-dash">
+        <h1>Data Pesanan Masuk</h1>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>ID Pesanan</th>
+            <th>Pelanggan</th>
+            <th>No. WhatsApp</th>
+            <th>Produk</th>
+            <th>Total</th>
+            <th>Tanggal</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="order-table-body"></tbody>
+      </table>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // --- SCRIPT UNTUK MELINDUNGI HALAMAN & LOGOUT ---
+        if (sessionStorage.getItem("isAdminLoggedIn") !== "true") {
+          alert("Anda harus login terlebih dahulu!");
+          window.location.href = "login.html";
+        }
+
+        const logoutButton = document.getElementById("logout-btn");
+        logoutButton.addEventListener("click", function (event) {
+          event.preventDefault();
+          sessionStorage.removeItem("isAdminLoggedIn");
+          window.location.href = "login.html";
+        });
+
+        // --- SCRIPT UNTUK MENAMPILKAN DAN MENGHAPUS DATA ---
+        const orderTableBody = document.getElementById("order-table-body");
+        let pesanan = JSON.parse(localStorage.getItem("pesananData")) || [];
+
+        function renderTable() {
+          orderTableBody.innerHTML = "";
+
+          if (pesanan.length === 0) {
+            // DIUBAH: colspan menjadi 7
+            orderTableBody.innerHTML =
+              '<tr><td colspan="7" style="text-align:center;">Belum ada pesanan yang masuk.</td></tr>';
+          } else {
+            pesanan.forEach((p) => {
+              // DIUBAH: Baris untuk status dihapus dari sini
+              const row = `
+                        <tr>
+                            <td>#${p.id}</td>
+                            <td>${p.pelanggan}</td>
+                            <td>${p.no_wa}</td>
+                            <td>${p.produk}</td>
+                            <td>Rp ${Number(p.total).toLocaleString(
+                              "id-ID"
+                            )}</td>
+                            <td>${p.tanggal}</td>
+                            <td>
+                                <button class="btn-delete" data-id="${
+                                  p.id
+                                }">Delete</button>
+                            </td>
+                        </tr>
+                    `;
+              orderTableBody.innerHTML += row;
+            });
+          }
+        }
+
+        renderTable();
+
+        orderTableBody.addEventListener("click", function (event) {
+          if (event.target.classList.contains("btn-delete")) {
+            const isConfirmed = confirm(
+              "Apakah Anda yakin ingin menghapus pesanan ini?"
+            );
+
+            if (isConfirmed) {
+              const idToDelete = event.target.getAttribute("data-id");
+              pesanan = pesanan.filter((p) => p.id != idToDelete);
+              localStorage.setItem("pesananData", JSON.stringify(pesanan));
+              alert("Pesanan berhasil dihapus.");
+              location.reload();
+            }
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
